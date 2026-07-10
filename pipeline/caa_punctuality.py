@@ -64,17 +64,18 @@ def resolve_ontime_cols(fieldnames: list[str]) -> list[str]:
     """
     keys = [str(k).strip().lower() for k in fieldnames if k]
     current = [k for k in keys if not k.startswith("previous")]
-    combined = [k for k in current if "early_to_15_minutes_late" in k]
+    # Els fitxers antics escriuen «mins»/«min» en lloc de «minutes»/«minute».
+    combined = [k for k in current if re.search(r"early_to_15_min(ute)?s?_late", k)]
     if combined:
         return combined[:1]
     cols = []
     for pattern in (
-        "more_than_15_minutes_early",
-        "15_minutes_early_to_1_minute",
-        "0_to_15_minutes_late",
+        r"more_than_15_min(ute)?s?_early",
+        r"15_min(ute)?s?_early_to_1_min",
+        r"(?<!\d)0_to_15_min(ute)?s?_late",
     ):
         for k in current:
-            if pattern in k:
+            if re.search(pattern, k):
                 cols.append(k)
                 break
     return cols
