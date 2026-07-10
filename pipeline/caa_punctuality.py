@@ -69,7 +69,17 @@ def find_csv_links(year: int) -> list[str]:
     except urllib.error.HTTPError as exc:
         print(f"{year}: pàgina no disponible (HTTP {exc.code})")
         return []
-    links = re.findall(r'href="([^"]+?\.csv)"', html, flags=re.IGNORECASE)
+    # Enllaços a fitxers CSV amb qualsevol estil de cometes o paràmetres.
+    links = re.findall(r"""href\s*=\s*["']([^"']+?\.csv(?:\?[^"']*)?)["']""",
+                       html, flags=re.IGNORECASE)
+    if not links:
+        # Diagnòstic: la CAA canvia l'estructura de tant en tant.
+        title = re.search(r"<title[^>]*>(.*?)</title>", html, re.IGNORECASE | re.DOTALL)
+        hrefs = re.findall(r"""href\s*=\s*["']([^"']+)["']""", html, re.IGNORECASE)
+        interesting = [h for h in hrefs if re.search(r"csv|punctuality|media|download", h, re.IGNORECASE)]
+        print(f"  diagnòstic {year}: {len(html)} bytes, títol={title.group(1).strip()[:80] if title else '?'}")
+        for h in interesting[:15]:
+            print(f"    href: {h[:160]}")
     return sorted({urljoin(url, link) for link in links})
 
 
