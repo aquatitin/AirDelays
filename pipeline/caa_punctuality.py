@@ -69,17 +69,26 @@ def find_csv_links(year: int) -> list[str]:
     except urllib.error.HTTPError as exc:
         print(f"{year}: pàgina no disponible (HTTP {exc.code})")
         return []
-    # Enllaços a fitxers CSV amb qualsevol estil de cometes o paràmetres.
-    links = re.findall(r"""href\s*=\s*["']([^"']+?\.csv(?:\?[^"']*)?)["']""",
-                       html, flags=re.IGNORECASE)
+    anchors = re.findall(
+        r"""<a[^>]+href\s*=\s*["']([^"']+)["'][^>]*>(.*?)</a>""",
+        html, flags=re.IGNORECASE | re.DOTALL,
+    )
+    # Enllaços directes a .csv (estructura antiga del web de la CAA).
+    links = [href for href, _ in anchors if re.search(r"\.csv(\?|$)", href, re.IGNORECASE)]
+    # Estructura actual: descàrregues de document sense extensió
+    # (/Documents/Download/...). Es prefereixen els enllaços el text dels
+    # quals menciona CSV; si no n'hi ha, es proven tots i el filtre de
+    # contingut d'ingest_file descarta el que no toca.
+    docs = [
+        (href, re.sub(r"<[^>]+>", " ", text))
+        for href, text in anchors
+        if "/documents/download/" in href.lower()
+    ]
+    csvish = [href for href, text in docs if "csv" in text.lower()]
+    links += csvish or [href for href, _ in docs]
     if not links:
-        # Diagnòstic: la CAA canvia l'estructura de tant en tant.
         title = re.search(r"<title[^>]*>(.*?)</title>", html, re.IGNORECASE | re.DOTALL)
-        hrefs = re.findall(r"""href\s*=\s*["']([^"']+)["']""", html, re.IGNORECASE)
-        interesting = [h for h in hrefs if re.search(r"csv|punctuality|media|download", h, re.IGNORECASE)]
         print(f"  diagnòstic {year}: {len(html)} bytes, títol={title.group(1).strip()[:80] if title else '?'}")
-        for h in interesting[:15]:
-            print(f"    href: {h[:160]}")
     return sorted({urljoin(url, link) for link in links})
 
 
@@ -105,6 +114,8 @@ def title(text: str) -> str:
 
 
 def ingest_file(url: str, data: bytes, ds: Dataset, seen_periods: set[int], probe: bool) -> int:
+    if data[:5] == b"%PDF-" or data[:4] == b"PK\x03\x04":  # PDF o Office: no és CSV
+        return 0
     text = data.decode("utf-8-sig", errors="replace")
     reader = csv.DictReader(io.StringIO(text))
     rows = list(reader)
