@@ -22,6 +22,35 @@
     2025,
     2026
    ]
+  },
+  {
+   "order": 2,
+   "name": "Regne Unit — puntualitat per aeroport, aerolínia i ruta (CAA)",
+   "url": "https://www.caa.co.uk/data-and-analysis/uk-aviation-market/flight-punctuality/",
+   "attribution": "Font: UK Civil Aviation Authority",
+   "rec": "caa",
+   "dims": [
+    "airport",
+    "airline",
+    "route",
+    "country"
+   ],
+   "note": "Retards de totes les causes als aeroports declarants del Regne Unit. «País» és el país de l'altre extrem de la ruta; les rutes s'ancoren a l'aeroport britànic.",
+   "id": "caa",
+   "years": [
+    2015,
+    2016,
+    2017,
+    2018,
+    2019,
+    2020,
+    2021,
+    2022,
+    2023,
+    2024,
+    2025,
+    2026
+   ]
   }
  ],
  "generated": "2026-07-10"
