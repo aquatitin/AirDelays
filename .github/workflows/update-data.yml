@@ -1,0 +1,63 @@
+name: Actualitza les dades
+
+on:
+  workflow_dispatch:
+    inputs:
+      caa_start:
+        description: "Primer any a ingerir de la CAA"
+        default: "2015"
+        required: false
+  schedule:
+    # El dia 20 de cada mes: Eurocontrol publica a mitjan mes,
+    # la CAA unes 8 setmanes després de tancar el mes.
+    - cron: "37 5 20 * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-data
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Dependències
+        run: pip install openpyxl
+
+      - name: Eurocontrol — retard ATFM per aeroport
+        id: eurocontrol
+        continue-on-error: true
+        run: python3 pipeline/eurocontrol_atfm.py
+
+      - name: CAA — puntualitat del Regne Unit
+        id: caa
+        continue-on-error: true
+        run: |
+          python3 pipeline/caa_punctuality.py \
+            --years "${{ github.event.inputs.caa_start || '2015' }}" "$(date +%Y)"
+
+      - name: Comprova que almenys una font ha funcionat
+        if: steps.eurocontrol.outcome == 'failure' && steps.caa.outcome == 'failure'
+        run: |
+          echo "::error::Les dues fonts han fallat"
+          exit 1
+
+      - name: Publica els canvis
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/data
+          if git diff --cached --quiet; then
+            echo "Sense canvis a les dades"
+            exit 0
+          fi
+          git commit -m "Actualitza les dades (Eurocontrol: ${{ steps.eurocontrol.outcome }}, CAA: ${{ steps.caa.outcome }})"
+          git push

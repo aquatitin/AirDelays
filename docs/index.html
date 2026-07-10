@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AirDelays — Retards històrics de vols a Europa</title>
+<meta name="description" content="Estadístiques històriques de retards de vols a Europa, per aeroport, país, aerolínia i ruta, mes a mes i any a any. Fonts: Eurocontrol i UK CAA.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✈️</text></svg>">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="wrap">
+
+<header class="site">
+  <h1>AirDelays</h1>
+  <p>Estadístiques històriques de retards de vols a Europa — per aeroport, país,
+  aerolínia i ruta, mes a mes i any a any. Dades oficials d'Eurocontrol i de la
+  UK Civil Aviation Authority.</p>
+</header>
+
+<div class="notice" id="notice" hidden></div>
+
+<div class="filters" id="filters">
+  <div class="filter">
+    <label for="f-dataset">Conjunt de dades</label>
+    <select id="f-dataset"></select>
+  </div>
+  <div class="filter">
+    <label id="l-dim">Dimensió</label>
+    <div class="dim-tabs" id="f-dim" role="group" aria-labelledby="l-dim"></div>
+  </div>
+  <div class="filter">
+    <label for="f-entity">Element</label>
+    <input id="f-entity" list="entity-list" autocomplete="off" placeholder="Cerca…">
+    <datalist id="entity-list"></datalist>
+  </div>
+  <div class="filter">
+    <label for="f-metric">Mètrica</label>
+    <select id="f-metric"></select>
+  </div>
+  <div class="filter" id="dir-box" hidden>
+    <label for="f-dir">Sentit</label>
+    <select id="f-dir">
+      <option value="A">Arribades</option>
+      <option value="D">Sortides</option>
+      <option value="T">Tots dos</option>
+    </select>
+  </div>
+  <div class="filter">
+    <label for="f-period">Període</label>
+    <select id="f-period">
+      <option value="all">Tots els anys</option>
+      <option value="5">Darrers 5 anys</option>
+      <option value="3">Darrers 3 anys</option>
+      <option value="1">Darrers 12 mesos</option>
+    </select>
+  </div>
+</div>
+
+<main id="main" class="grid">
+
+  <div class="kpis" id="kpis"></div>
+
+  <section class="card" id="card-trend">
+    <h2 id="trend-title">Evolució mensual</h2>
+    <p class="sub" id="trend-sub"></p>
+    <div class="legend" id="trend-legend"></div>
+    <div class="chart-box" id="trend-box">
+      <svg class="chart" id="trend-svg" role="img"></svg>
+      <div class="tooltip" id="trend-tip"></div>
+    </div>
+  </section>
+
+  <section class="card" id="card-heat">
+    <h2 id="heat-title">Mapa de calor: anys × mesos</h2>
+    <p class="sub" id="heat-sub"></p>
+    <div class="chart-box" id="heat-box">
+      <svg class="chart" id="heat-svg" role="img"></svg>
+      <div class="tooltip" id="heat-tip"></div>
+    </div>
+    <div class="scale" id="heat-scale"></div>
+  </section>
+
+  <section class="card" id="card-rank">
+    <div class="card-head">
+      <h2 id="rank-title">Rànquing</h2>
+      <div class="rank-controls" role="group" aria-label="Ordre">
+        <button id="rank-desc" aria-pressed="true">Valor més alt</button>
+        <button id="rank-asc" aria-pressed="false">Valor més baix</button>
+      </div>
+    </div>
+    <p class="sub" id="rank-sub"></p>
+    <div class="chart-box" id="rank-box">
+      <svg class="chart" id="rank-svg" role="img"></svg>
+      <div class="tooltip" id="rank-tip"></div>
+    </div>
+  </section>
+
+  <section class="card" id="card-table">
+    <h2>Taula completa</h2>
+    <p class="sub" id="table-sub">Tots els elements del període seleccionat. Feu clic a una capçalera per ordenar i a una fila per seleccionar.</p>
+    <div class="table-box">
+      <table class="data" id="data-table"></table>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site">
+  <h2>Fonts i metodologia</h2>
+  <ul>
+    <li><strong>Europa (Eurocontrol):</strong> conjunt obert
+      <a href="https://ansperformance.eu/data/" rel="noopener">Airport Arrival ATFM Delay</a>
+      de l'Aviation Intelligence Portal d'EUROCONTROL. Recull, per a cada aeroport
+      de l'àrea ECAC i des del 2014, les arribades IFR i els minuts de retard de
+      regulació de trànsit aeri (ATFM) imputats a l'aeroport d'arribada: és
+      l'indicador oficial de congestió d'aeroports i espai aeri. <em>No inclou</em>
+      els retards propis de les aerolínies (rotacions, tripulació, tècnics).</li>
+    <li><strong>Regne Unit (CAA):</strong>
+      <a href="https://www.caa.co.uk/data-and-analysis/uk-aviation-market/flight-punctuality/" rel="noopener">Flight punctuality statistics</a>
+      de la UK Civil Aviation Authority: retards de <em>totes les causes</em> per
+      aeroport declarant, aerolínia, ruta i país de l'altre extrem, amb sèrie
+      mensual. La puntualitat segueix la definició estàndard: vol puntual si
+      arriba o surt com a màxim 15 minuts tard.</li>
+  </ul>
+  <p>Les dades s'actualitzen automàticament cada mes des de les fonts oficials.
+  Els percentatges i les mitjanes es calculen a partir dels comptadors mensuals
+  originals, de manera que els agregats anuals són exactes.
+  Atribució: EUROCONTROL · UK Civil Aviation Authority.</p>
+</footer>
+
+</div>
+<script src="app.js"></script>
+</body>
+</html>
