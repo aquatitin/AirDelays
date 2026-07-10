@@ -14,7 +14,7 @@ fonts oficials són les que fa servir aquest projecte:
 
 | Font | Cobertura | Granularitat | Des de | Què mesura |
 |---|---|---|---|---|
-| [EUROCONTROL — Airport Arrival ATFM Delay](https://ansperformance.eu/data/) | Tots els aeroports de l'àrea ECAC (~40 estats) | aeroport · país · mes | 2014 | Minuts de retard de regulació de trànsit aeri (ATFM) imputats a l'aeroport d'arribada: congestió d'aeroport i d'espai aeri. **No inclou** els retards propis de les aerolínies. |
+| [EUROCONTROL — Airport Arrival ATFM Delay](https://ansperformance.eu/data/) | Tots els aeroports de l'àrea ECAC (~40 estats) | aeroport · país · mes | 2019 (finestra del fitxer publicat) | Minuts de retard de regulació de trànsit aeri (ATFM) imputats a l'aeroport d'arribada: congestió d'aeroport i d'espai aeri. **No inclou** els retards propis de les aerolínies. |
 | [UK CAA — Flight punctuality statistics](https://www.caa.co.uk/data-and-analysis/uk-aviation-market/flight-punctuality/) | Aeroports declarants del Regne Unit | aeroport · aerolínia · ruta · país de l'altre extrem · mes | ~2015 (en línia) | Retards de **totes les causes**: retard mitjà, puntualitat (≤ 15 min) i cancel·lacions, per a arribades i sortides. |
 
 Fonts complementàries documentades però no integrades:
