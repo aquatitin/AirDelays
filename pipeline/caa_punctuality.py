@@ -55,11 +55,29 @@ META = {
 #  dep_vols, dep_cancel, dep_min_retard, dep_puntuals]
 REC_LEN = 8
 
-ONTIME_COLS = (
-    "flights_more_than_15_minutes_early_percent",
-    "flights_15_minutes_early_to_1_minute_early_percent",
-    "flights_0_to_15_minutes_late_percent",
-)
+def resolve_ontime_cols(fieldnames: list[str]) -> list[str]:
+    """Troba les columnes de percentatge «puntual (≤ 15 min)» del fitxer.
+
+    Els fitxers moderns tenen tres trams (més de 15' aviat, 15'-1' aviat,
+    0-15' tard); alguns d'antics tenen un tram combinat únic. S'ignoren
+    les columnes de comparació amb l'any anterior.
+    """
+    keys = [str(k).strip().lower() for k in fieldnames if k]
+    current = [k for k in keys if not k.startswith("previous")]
+    combined = [k for k in current if "early_to_15_minutes_late" in k]
+    if combined:
+        return combined[:1]
+    cols = []
+    for pattern in (
+        "more_than_15_minutes_early",
+        "15_minutes_early_to_1_minute",
+        "0_to_15_minutes_late",
+    ):
+        for k in current:
+            if pattern in k:
+                cols.append(k)
+                break
+    return cols
 
 
 def find_csv_links(year: int) -> list[str]:
@@ -69,10 +87,17 @@ def find_csv_links(year: int) -> list[str]:
     except urllib.error.HTTPError as exc:
         print(f"{year}: pàgina no disponible (HTTP {exc.code})")
         return []
-    anchors = re.findall(
-        r"""<a[^>]+href\s*=\s*["']([^"']+)["'][^>]*>(.*?)</a>""",
-        html, flags=re.IGNORECASE | re.DOTALL,
-    )
+    anchors = [
+        (href, re.sub(r"<[^>]+>", " ", text).lower())
+        for href, text in re.findall(
+            r"""<a[^>]+href\s*=\s*["']([^"']+)["'][^>]*>(.*?)</a>""",
+            html, flags=re.IGNORECASE | re.DOTALL,
+        )
+        # Els fitxers anuals repeteixen les dades mensuals agregades amb
+        # el període de desembre (duplicarien l'any); els resums no tenen
+        # el detall per aerolínia i ruta.
+        if not re.search(r"annual|summary", text, re.IGNORECASE)
+    ]
     # Enllaços directes a .csv (estructura antiga del web de la CAA).
     links = [href for href, _ in anchors if re.search(r"\.csv(\?|$)", href, re.IGNORECASE)]
     # Estructura actual: descàrregues de document sense extensió
@@ -80,11 +105,11 @@ def find_csv_links(year: int) -> list[str]:
     # quals menciona CSV; si no n'hi ha, es proven tots i el filtre de
     # contingut d'ingest_file descarta el que no toca.
     docs = [
-        (href, re.sub(r"<[^>]+>", " ", text))
+        (href, text)
         for href, text in anchors
         if "/documents/download/" in href.lower()
     ]
-    csvish = [href for href, text in docs if "csv" in text.lower()]
+    csvish = [href for href, text in docs if "csv" in text]
     links += csvish or [href for href, _ in docs]
     if not links:
         title = re.search(r"<title[^>]*>(.*?)</title>", html, re.IGNORECASE | re.DOTALL)
@@ -130,6 +155,10 @@ def ingest_file(url: str, data: bytes, ds: Dataset, seen_periods: set[int], prob
         print("  primera fila:", rows[0])
         return 0
 
+    ontime_cols = resolve_ontime_cols(list(rows[0].keys()))
+    if not ontime_cols:
+        print(f"  avís: sense columnes de puntualitat a {os.path.basename(url)}: {list(rows[0].keys())}")
+
     periods = {int(to_float(col(r, "reporting_period"))) for r in rows}
     new_periods = periods - seen_periods
     if not new_periods:
@@ -155,7 +184,7 @@ def ingest_file(url: str, data: bytes, ds: Dataset, seen_periods: set[int], prob
         matched = int(to_float(col(row, "number_flights_matched")))
         cancelled = int(to_float(col(row, "number_flights_cancelled")))
         avg_delay = to_float(col(row, "average_delay_mins", "average_delay"))
-        ontime_pct = sum(to_float(col(row, c)) for c in ONTIME_COLS)
+        ontime_pct = sum(to_float(col(row, c)) for c in ontime_cols)
 
         delay_sum = int(round(avg_delay * matched))
         ontime = int(round(ontime_pct * matched / 100))
