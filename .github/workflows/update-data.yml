@@ -7,6 +7,10 @@ on:
         description: "Primer any a ingerir de la CAA"
         default: "2015"
         required: false
+  push:
+    paths:
+      - "pipeline/**"
+      - ".github/workflows/update-data.yml"
   schedule:
     # El dia 20 de cada mes: Eurocontrol publica a mitjan mes,
     # la CAA unes 8 setmanes després de tancar el mes.
