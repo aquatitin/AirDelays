@@ -1,0 +1,28 @@
+{
+ "datasets": [
+  {
+   "order": 1,
+   "name": "Europa — retard ATFM per aeroport (Eurocontrol)",
+   "url": "https://ansperformance.eu/data/",
+   "attribution": "Font: EUROCONTROL (ansperformance.eu)",
+   "rec": "ec",
+   "dims": [
+    "airport",
+    "country"
+   ],
+   "note": "Retard de regulació de trànsit aeri (ATFM) imputat a l'aeroport d'arribada. No inclou retards propis de les aerolínies (rotació, tripulacions, tècnics): és l'indicador de congestió d'aeroport i espai aeri que publica Eurocontrol.",
+   "id": "eurocontrol",
+   "years": [
+    2019,
+    2020,
+    2021,
+    2022,
+    2023,
+    2024,
+    2025,
+    2026
+   ]
+  }
+ ],
+ "generated": "2026-07-10"
+}
